@@ -1,0 +1,113 @@
+@import "tailwindcss";
+
+@theme {
+  --font-sans: var(--font-jakarta), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-heading: var(--font-outfit), ui-sans-serif, system-ui, -apple-system, sans-serif;
+  
+  --color-brand: #189653;
+  --color-brand-hover: #127744;
+  --color-brand-light: #eaf6ef;
+  --color-brand-dark: #0f4e2b;
+  
+  --color-dark: #0f172a;
+  --color-body: #334155;
+  --color-muted: #64748b;
+  --color-border-soft: #e2e8f0;
+  --color-bg-light: #f8fafc;
+  
+  --animate-fade-in: fade-in 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-slide-up: slide-up 0.7s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  --animate-scale-in: scale-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes fade-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(24px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  background-color: var(--background, #ffffff);
+  color: var(--color-body);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  font-family: var(--font-heading);
+  color: var(--color-dark);
+  font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+p {
+  line-height: 1.7;
+}
+
+::selection {
+  background-color: var(--color-brand);
+  color: #ffffff;
+}
+
+.container-shell {
+  width: min(1200px, calc(100% - 40px));
+  margin-inline: auto;
+}
+
+.focus-ring {
+  outline: none;
+  transition: box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.focus-ring:focus-visible {
+  box-shadow: 0 0 0 4px rgba(24, 150, 83, 0.2);
+  border-color: var(--color-brand);
+}
+
+/* Glassmorphism card */
+.glass-card {
+  background: rgba(255, 255, 255, 0.7);
+  backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.5);
+}
+
+/* Micro-animations */
+.hover-lift {
+  transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.hover-lift:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 16px 32px -8px rgba(15, 23, 42, 0.08);
+}
