@@ -23,9 +23,10 @@ export default function GDPRPage() {
               Prevádzkovateľom vašich osobných údajov je:
             </p>
             <div className="mt-3 p-4 bg-slate-50 border border-slate-100 rounded-xl font-bold text-slate-800">
-              <p className="font-extrabold text-slate-950">CONTROLLO s. r. o.</p>
-              <p className="text-xs text-slate-500 mt-1">Sídlo: Ulica Slovenská 12, 811 01 Bratislava</p>
-              <p className="text-xs text-slate-500">IČO: XX XXX XXX</p>
+              <p className="font-extrabold text-slate-950">Controllo s. r. o.</p>
+              <p className="text-xs text-slate-500 mt-1">Sídlo: Družstevná 504/6, 072 22 Strážske</p>
+              <p className="text-xs text-slate-500">IČO: 57523959</p>
+              <p className="text-xs text-slate-500">DIČ: 2122807192</p>
               <p className="text-xs text-slate-500">E-mail: info@controllo.sk</p>
             </div>
           </section>

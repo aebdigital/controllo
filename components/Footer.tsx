@@ -19,6 +19,11 @@ export default function Footer() {
           <p className="max-w-xs text-sm text-slate-500 font-semibold leading-relaxed">
             Profesionálna kontrola vozidiel pred kúpou kdekoľvek na Slovensku.
           </p>
+          <div className="text-[11px] text-slate-400 font-semibold leading-tight space-y-0.5">
+            <p className="font-extrabold text-slate-500">Controllo s. r. o.</p>
+            <p>Družstevná 504/6, 072 22 Strážske</p>
+            <p>IČO: 57523959 | DIČ: 2122807192</p>
+          </div>
         </div>
         
         <div className="grid gap-6 sm:grid-cols-2 md:gap-16">

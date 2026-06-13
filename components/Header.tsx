@@ -11,7 +11,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className="sticky top-0 z-40 border-b border-slate-100 bg-white/80 backdrop-blur-md">
+    <header className={`sticky top-0 border-b border-slate-100 bg-white/80 backdrop-blur-md transition-colors ${mobileMenuOpen ? "z-[90]" : "z-40"}`}>
       <div className="container-shell flex min-h-20 items-center justify-between gap-4">
         <Link href="/" className="focus-ring flex items-center">
           <Image
@@ -62,7 +62,7 @@ export default function Header() {
       {/* Mobile Navigation Panel */}
       <AnimatePresence>
         {mobileMenuOpen && (
-          <div className="fixed inset-0 z-50 flex justify-end md:hidden">
+          <div className="fixed inset-0 z-[100] flex justify-end md:hidden">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -75,7 +75,7 @@ export default function Header() {
               animate={{ x: 0 }}
               exit={{ x: "100%" }}
               transition={{ type: "spring", damping: 25, stiffness: 200 }}
-              className="relative w-72 max-w-sm bg-white p-6 shadow-2xl flex flex-col justify-between border-l border-slate-100"
+              className="relative h-[100dvh] w-72 max-w-sm bg-white p-6 shadow-2xl flex flex-col justify-between border-l border-slate-100 overflow-y-auto"
             >
               <div>
                 <div className="flex items-center justify-between border-b border-slate-100 pb-4">
