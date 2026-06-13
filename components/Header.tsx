@@ -11,7 +11,7 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   return (
-    <header className={`sticky top-0 border-b border-slate-100 bg-white/80 backdrop-blur-md transition-colors ${mobileMenuOpen ? "z-[90]" : "z-40"}`}>
+    <header className={`sticky top-0 border-b border-slate-100 bg-white transition-colors ${mobileMenuOpen ? "z-[90]" : "z-40"}`}>
       <div className="container-shell flex min-h-20 items-center justify-between gap-4">
         <Link href="/" className="focus-ring flex items-center">
           <Image
