@@ -3,6 +3,7 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
+import { W, H, path as slovakiaPath, project } from "./slovakia-map-data";
 import {
   ArrowRight,
   BadgeCheck,
@@ -20,7 +21,25 @@ import {
   X,
 } from "lucide-react";
 
-const primary = "#189653";
+const mapPins = [
+  { name: "Bratislava", lat: 48.1486, lon: 17.1077 },
+  { name: "Trnava", lat: 48.3774, lon: 17.5872 },
+  { name: "Nitra", lat: 48.3061, lon: 18.0764 },
+  { name: "Trenčín", lat: 48.8945, lon: 18.0444 },
+  { name: "Žilina", lat: 49.2232, lon: 18.7394 },
+  { name: "Banská Bystrica", lat: 48.7363, lon: 19.1462 },
+  { name: "Poprad", lat: 49.0614, lon: 20.298 },
+  { name: "Prešov", lat: 48.9977, lon: 21.2393 },
+  { name: "Košice", lat: 48.7164, lon: 21.2611 },
+].map((city) => ({ ...city, ...project(city.lat, city.lon) }));
+
+const mapMargin = 18;
+const mapViewBox = {
+  x: -mapMargin,
+  y: -mapMargin,
+  w: W + mapMargin * 2,
+  h: H + mapMargin * 2,
+};
 
 const trustPoints = [
   "Detailný 150 bodový report",
@@ -193,30 +212,99 @@ function Rating({ variant = "light" }: { variant?: "light" | "dark" }) {
 
 function SlovakiaMap() {
   return (
-    <svg
-      viewBox="0 0 760 360"
-      role="img"
-      aria-label="Mapa Slovenska"
-      className="mx-auto h-auto w-full max-w-3xl"
+    <div
+      className="relative mx-auto w-full max-w-5xl"
+      style={{ aspectRatio: `${mapViewBox.w} / ${mapViewBox.h}` }}
     >
-      <path
-        d="M54 210 C47 184 63 154 92 143 C118 134 122 105 151 101 C174 98 187 83 207 72 C234 57 254 77 281 69 C309 61 318 32 337 44 C354 55 358 81 381 86 C404 91 420 78 440 67 C465 53 484 71 507 68 C534 64 548 49 570 63 C589 75 612 66 637 76 C668 88 667 120 694 133 C724 147 713 177 734 194 C710 221 697 249 657 245 C623 242 612 268 579 264 C548 260 535 282 500 275 C462 268 443 289 405 284 C365 278 350 309 309 298 C276 290 259 315 223 301 C190 289 163 307 135 282 C108 258 73 262 61 237 C56 226 67 217 54 210 Z"
-        fill={primary}
-        stroke="white"
-        strokeWidth="5"
-        strokeLinejoin="round"
-      />
-      <path
-        d="M151 101 C158 140 174 160 145 202 C130 224 139 253 135 282 M231 64 C248 128 224 166 249 211 C263 236 249 268 223 301 M337 44 C345 111 319 147 333 204 C340 236 329 268 309 298 M440 67 C420 121 421 177 442 221 C453 246 430 268 405 284 M570 63 C551 119 540 177 548 222 C552 248 528 265 500 275 M637 76 C618 128 606 178 614 218 C619 240 600 257 579 264"
-        fill="none"
-        stroke="white"
-        strokeWidth="4"
-        strokeLinecap="round"
-        opacity="0.86"
-      />
-      <circle cx="380" cy="178" r="10" fill="white" opacity="0.9" />
-      <circle cx="380" cy="178" r="22" fill="none" stroke="white" strokeWidth="3" />
-    </svg>
+      <svg
+        viewBox={`${mapViewBox.x} ${mapViewBox.y} ${mapViewBox.w} ${mapViewBox.h}`}
+        role="img"
+        aria-label="Mapa Slovenska s mestami, kde robíme kontroly vozidiel"
+        className="absolute inset-0 h-full w-full"
+      >
+        <defs>
+          <linearGradient id="controllo-sk-fill" x1="0" y1="0" x2="1" y2="1">
+            <stop offset="0%" stopColor="#bdebd1" stopOpacity="0.96" />
+            <stop offset="56%" stopColor="#189653" stopOpacity="0.9" />
+            <stop offset="100%" stopColor="#0f6f3d" stopOpacity="0.96" />
+          </linearGradient>
+          <pattern
+            id="controllo-sk-texture"
+            width="24"
+            height="24"
+            patternUnits="userSpaceOnUse"
+            patternTransform="rotate(-16)"
+          >
+            <path
+              d="M-4 5 H28 M-4 16 H28"
+              stroke="#ffffff"
+              strokeOpacity="0.2"
+              strokeWidth="1"
+            />
+            <circle cx="6" cy="10" r="1.1" fill="#0a3b24" fillOpacity="0.12" />
+            <circle cx="18" cy="3" r="0.85" fill="#ffffff" fillOpacity="0.32" />
+          </pattern>
+          <filter id="controllo-sk-shadow" x="-12%" y="-12%" width="124%" height="124%">
+            <feDropShadow
+              dx="0"
+              dy="16"
+              stdDeviation="18"
+              floodColor="#0f6f3d"
+              floodOpacity="0.14"
+            />
+          </filter>
+        </defs>
+        <path
+          d={slovakiaPath}
+          fill="#dff4e8"
+          stroke="#189653"
+          strokeOpacity="0.18"
+          strokeWidth="2"
+          strokeLinejoin="round"
+          filter="url(#controllo-sk-shadow)"
+        />
+        <path
+          d={slovakiaPath}
+          fill="url(#controllo-sk-fill)"
+          stroke="#0f6f3d"
+          strokeWidth="1.5"
+          strokeOpacity="0.52"
+          strokeLinejoin="round"
+        />
+        <path d={slovakiaPath} fill="url(#controllo-sk-texture)" opacity="0.55" />
+      </svg>
+
+      {mapPins.map((pin) => (
+        <div
+          key={pin.name}
+          className="group absolute z-10 -translate-x-1/2 -translate-y-full"
+          style={{
+            left: `${((pin.x - mapViewBox.x) / mapViewBox.w) * 100}%`,
+            top: `${((pin.y - mapViewBox.y) / mapViewBox.h) * 100}%`,
+          }}
+        >
+          <div className="relative flex flex-col items-center">
+            <svg
+              viewBox="0 0 24 34"
+              className="h-7 w-auto drop-shadow-md transition-transform duration-150 group-hover:scale-125"
+              style={{ transformOrigin: "bottom center" }}
+              aria-hidden="true"
+            >
+              <path
+                d="M12 0C5.9 0 1 4.9 1 11c0 7.9 9.5 21.3 10.2 22.3.4.6 1.2.6 1.6 0C13.5 32.3 23 18.9 23 11 23 4.9 18.1 0 12 0z"
+                fill="#0f6f3d"
+                stroke="#fff"
+                strokeWidth={1.8}
+              />
+              <circle cx="12" cy="11" r="4" fill="#fff" />
+            </svg>
+            <span className="mt-1 hidden whitespace-nowrap bg-white/95 px-2 py-1 text-xs font-black text-[#0f6f3d] shadow-sm ring-1 ring-[#d9e2dc] sm:block">
+              {pin.name}
+            </span>
+          </div>
+        </div>
+      ))}
+    </div>
   );
 }
 

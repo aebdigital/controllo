@@ -7,7 +7,9 @@ export async function POST(request: Request) {
 
     // Standard Next.js server-side check for API keys
     const secretKey = process.env.STRIPE_SECRET_KEY;
-    const origin = request.headers.get("origin") || "http://localhost:3002";
+    const origin =
+      process.env.NEXT_PUBLIC_SITE_URL?.replace(/\/$/, "") ||
+      new URL(request.url).origin;
 
     if (!secretKey) {
       console.warn(
@@ -22,9 +24,7 @@ export async function POST(request: Request) {
     }
 
     // Initialize Stripe client
-    const stripe = new Stripe(secretKey, {
-      apiVersion: "2025-01-27.acacia" as any, // use current SDK api version
-    });
+    const stripe = new Stripe(secretKey);
 
     // Create a Checkout Session
     const session = await stripe.checkout.sessions.create({
@@ -44,6 +44,7 @@ export async function POST(request: Request) {
       ],
       mode: "payment",
       customer_email: email || undefined,
+      billing_address_collection: "required",
       metadata: {
         customer_name: name || "",
         customer_phone: phone || "",
