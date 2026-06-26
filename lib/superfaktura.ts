@@ -172,6 +172,37 @@ async function findInvoiceByOrderNumber(
   };
 }
 
+async function registerPayment(
+  invoiceId: number,
+  amount: number,
+  currency: string,
+  paidOn: string
+) {
+  const response = await superfakturaRequest<SuperFakturaInvoiceResponse>(
+    "/invoice_payments/add",
+    {
+      method: "POST",
+      body: JSON.stringify({
+        InvoicePayment: {
+          invoice_id: invoiceId,
+          payment_type: "card",
+          amount,
+          currency,
+          created: paidOn,
+        },
+      }),
+    }
+  );
+
+  if (response.error) {
+    throw new Error(
+      `SuperFaktura could not register the payment: ${JSON.stringify(
+        response.error_message || response.message || response
+      )}`
+    );
+  }
+}
+
 async function createPaidInvoice(
   session: Stripe.Checkout.Session,
   paidAt: number
@@ -184,9 +215,10 @@ async function createPaidInvoice(
   }
 
   const total = totalInCents / 100;
+  const currency = (session.currency || "eur").toUpperCase();
   const unitPrice =
     config.taxRate === 0 ? total : total / (1 + config.taxRate / 100);
-  const { date, dateTime } = paymentTimestamp(paidAt);
+  const { date } = paymentTimestamp(paidAt);
   const customerEmail =
     session.customer_details?.email || session.customer_email;
   const customerName =
@@ -206,10 +238,8 @@ async function createPaidInvoice(
           created: date,
           delivery: date,
           due: date,
-          already_paid: 1,
-          paydate: dateTime,
           payment_type: "card",
-          invoice_currency: (session.currency || "eur").toUpperCase(),
+          invoice_currency: currency,
           order_no: session.id,
           internal_comment: [
             `Stripe Checkout Session: ${session.id}`,
@@ -270,6 +300,9 @@ async function createPaidInvoice(
   if (!Number.isInteger(invoiceId) || invoiceId <= 0) {
     throw new Error("SuperFaktura created an invoice without returning its ID.");
   }
+
+  // Register the card payment so the invoice (and its PDF) shows as fully paid.
+  await registerPayment(invoiceId, total, currency, date);
 
   return { id: invoiceId, alreadySent: false };
 }
