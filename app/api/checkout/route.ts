@@ -37,7 +37,7 @@ export async function POST(request: Request) {
               name: "150-Bodová Kontrola Vozidla",
               description: `Kontrola vozidla pre: ${name}. Odkaz: ${adUrl || "Neuvedený"}`,
             },
-            unit_amount: 15900, // 159.00 EUR in cents
+            unit_amount: 50, // TEST PRICE 0.50 EUR — revert to 15900 (159.00 EUR) before launch
           },
           quantity: 1,
         },

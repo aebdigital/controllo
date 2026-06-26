@@ -1013,7 +1013,7 @@ export default function Home() {
               className="focus-ring mt-2 inline-flex min-h-12 items-center justify-center gap-2 border border-[#189653] bg-[#189653] px-6 py-3 text-xs font-black uppercase tracking-wider text-white transition hover:bg-[#127744] hover:shadow-lg hover:shadow-brand/20 active:scale-[0.98] cursor-pointer rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
               type="submit"
             >
-              {isSubmitting ? "Presmerovanie na platbu..." : "Prejsť k platbe 159 €"}
+              {isSubmitting ? "Presmerovanie na platbu..." : "Prejsť k platbe 0,50 €"}
               <ArrowRight aria-hidden="true" size={15} strokeWidth={2.7} />
             </button>
           </form>

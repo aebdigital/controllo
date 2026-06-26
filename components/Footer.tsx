@@ -36,6 +36,11 @@ export default function Footer() {
                 </Link>
               </li>
               <li>
+                <Link href="/kontakt" className="hover:text-brand transition">
+                  Kontaktný formulár
+                </Link>
+              </li>
+              <li>
                 <Link href="/ochrana-osobnych-udajov" className="hover:text-brand transition">
                   Ochrana osobných údajov (GDPR)
                 </Link>

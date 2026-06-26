@@ -38,6 +38,9 @@ export default function Header() {
           <Link className="hover:text-brand transition" href="/#faq">
             Časté otázky
           </Link>
+          <Link className="hover:text-brand transition" href="/kontakt">
+            Kontakt
+          </Link>
         </nav>
 
         <div className="hidden md:block">
@@ -122,6 +125,13 @@ export default function Header() {
                     onClick={() => setMobileMenuOpen(false)}
                   >
                     Časté otázky
+                  </Link>
+                  <Link
+                    className="hover:text-brand transition"
+                    href="/kontakt"
+                    onClick={() => setMobileMenuOpen(false)}
+                  >
+                    Kontakt
                   </Link>
                 </nav>
               </div>
