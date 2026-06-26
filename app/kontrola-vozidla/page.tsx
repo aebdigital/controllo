@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
@@ -16,6 +16,9 @@ import {
   FileText,
   PhoneCall,
   UserCheck,
+  Clock,
+  MapPin,
+  X,
 } from "lucide-react";
 
 interface ChecklistCategory {
@@ -98,6 +101,62 @@ const checklistCategories: ChecklistCategory[] = [
 
 export default function ProductDetailPage() {
   const [activeCategory, setActiveCategory] = useState<string>("karoseria");
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    adUrl: "",
+    note: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState("");
+
+  useEffect(() => {
+    // Check payment status from query parameters
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+    if (payment) {
+      setPaymentStatus(payment);
+      setCustomerName(params.get("name") || "");
+    }
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.phone || !formData.email) {
+      setErrorMessage("Prosím, vyplňte meno, telefón a e-mail.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Nepodarilo sa vytvoriť objednávku.");
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Neplatná odpoveď zo servera.");
+      }
+    } catch (err: any) {
+      console.error(err);
+      setErrorMessage(err.message || "Nastala neznáma chyba. Skúste to znova.");
+      setIsSubmitting(false);
+    }
+  };
 
   return (
     <main className="bg-slate-50 min-h-screen py-12 md:py-20">
@@ -124,7 +183,7 @@ export default function ProductDetailPage() {
               </div>
             </div>
             <Link
-              href="/#objednavka"
+              href="#objednavka"
               className="focus-ring flex-1 sm:flex-initial inline-flex min-h-16 items-center justify-center gap-2 border border-brand bg-brand px-8 py-4 text-sm font-black uppercase tracking-wider text-white transition hover:bg-brand-hover hover:shadow-lg hover:shadow-brand/20 active:scale-[0.98] rounded-xl"
             >
               Objednať preverenie teraz
@@ -342,7 +401,7 @@ export default function ProductDetailPage() {
           </div>
           <div className="relative shrink-0">
             <Link
-              href="/#objednavka"
+              href="#objednavka"
               className="focus-ring inline-flex min-h-14 items-center justify-center gap-2 bg-brand px-6 py-3 text-xs font-black uppercase tracking-wider text-white transition hover:bg-brand-hover hover:shadow-lg hover:shadow-brand/20 active:scale-[0.98] cursor-pointer rounded-lg"
             >
               Objednať preverenie za 159 €
@@ -351,6 +410,166 @@ export default function ProductDetailPage() {
           </div>
         </div>
       </section>
+
+      {/* Booking Form Section */}
+      <section id="objednavka" className="mt-20 md:mt-32 -mx-4 sm:-mx-6 lg:-mx-8 bg-white border-t border-slate-100 py-20">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="container-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr]"
+        >
+          <div>
+            <p className="text-xs font-black uppercase tracking-wider text-brand">Nezáväzný formulár</p>
+            <h2 className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">
+              Objednávka kontroly auta
+            </h2>
+            <p className="mt-4 text-slate-600 font-medium leading-relaxed">
+              Vyplň krátky formulár. Technik ťa bude následne kontaktovať pre potvrdenie miesta, času a detailov obhliadky.
+            </p>
+            <div className="mt-8 space-y-4">
+              <div className="flex items-center gap-3 font-bold text-slate-800">
+                <div className="flex size-8 shrink-0 items-center justify-center bg-emerald-50 text-brand rounded-full">
+                  <Clock size={16} />
+                </div>
+                <span className="text-sm font-extrabold text-slate-900">Rýchle dohodnutie termínu (do 24-48 hod.)</span>
+              </div>
+              <div className="flex items-center gap-3 font-bold text-slate-800">
+                <div className="flex size-8 shrink-0 items-center justify-center bg-emerald-50 text-brand rounded-full">
+                  <MapPin size={16} />
+                </div>
+                <span className="text-sm font-extrabold text-slate-900">Kontroly po celom Slovensku bez doplatkov</span>
+              </div>
+            </div>
+          </div>
+
+          <form onSubmit={handleSubmit} className="grid gap-4 border border-slate-100 bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+            {errorMessage && (
+              <div className="bg-red-50 text-red-800 text-xs font-bold p-3 rounded-lg border border-red-100 mb-2">
+                {errorMessage}
+              </div>
+            )}
+            {paymentStatus === "cancelled" && (
+              <div className="bg-amber-50 text-amber-900 text-xs font-bold p-3 rounded-lg border border-amber-100 mb-2 flex items-center justify-between">
+                <span>Platba bola zrušená. Vaša objednávka nebola dokončená.</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setPaymentStatus(null);
+                    window.history.replaceState({}, document.title, window.location.pathname);
+                  }}
+                  className="text-amber-700 hover:text-amber-950 font-black cursor-pointer ml-2"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+            <label className="grid gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+              Meno a priezvisko *
+              <input
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="focus-ring min-h-12 border border-slate-200 rounded-lg px-4 text-sm font-bold normal-case focus:border-brand"
+                placeholder="Tvoje meno"
+                type="text"
+              />
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+                Telefónne číslo *
+                <input
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="focus-ring min-h-12 border border-slate-200 rounded-lg px-4 text-sm font-bold normal-case focus:border-brand"
+                  placeholder="+421 XXX XXX XXX"
+                  type="tel"
+                />
+              </label>
+              <label className="grid gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+                E-mailová adresa *
+                <input
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="focus-ring min-h-12 border border-slate-200 rounded-lg px-4 text-sm font-bold normal-case focus:border-brand"
+                  placeholder="info@email.sk"
+                  type="email"
+                />
+              </label>
+            </div>
+            <label className="grid gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+              Odkaz na inzerát vozidla
+              <input
+                value={formData.adUrl}
+                onChange={(e) => setFormData({ ...formData, adUrl: e.target.value })}
+                className="focus-ring min-h-12 border border-slate-200 rounded-lg px-4 text-sm font-bold normal-case focus:border-brand"
+                placeholder="https://www.autobazar.eu/..."
+                type="url"
+              />
+            </label>
+            <label className="grid gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+              Poznámka pre technika
+              <textarea
+                value={formData.note}
+                onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+                className="focus-ring min-h-28 resize-none border border-slate-200 rounded-lg px-4 py-3 text-sm font-bold normal-case focus:border-brand"
+                placeholder="Doplňujúce otázky, preferovaný termín alebo miesto..."
+              />
+            </label>
+            <button
+              disabled={isSubmitting}
+              className="focus-ring mt-2 inline-flex min-h-12 items-center justify-center gap-2 border border-[#189653] bg-[#189653] px-6 py-3 text-xs font-black uppercase tracking-wider text-white transition hover:bg-[#127744] hover:shadow-lg hover:shadow-brand/20 active:scale-[0.98] cursor-pointer rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              type="submit"
+            >
+              {isSubmitting ? "Presmerovanie na platbu..." : "Prejsť k platbe 159 €"}
+              <ArrowRight aria-hidden="true" size={15} strokeWidth={2.7} />
+            </button>
+          </form>
+        </motion.div>
+      </section>
+
+      {/* Payment Success Overlay Modal */}
+      <AnimatePresence>
+        {(paymentStatus === "success" || paymentStatus === "mock_success") && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-md overflow-hidden border border-slate-100 bg-white p-8 shadow-2xl rounded-2xl text-center"
+            >
+              <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-100 text-brand">
+                <Check size={28} strokeWidth={3} />
+              </div>
+              <h3 className="font-heading text-2xl font-extrabold text-slate-900 mt-5">
+                Objednávka zaplatená!
+              </h3>
+              <p className="mt-3 text-sm text-slate-600 font-medium leading-relaxed">
+                Ďakujeme za vašu objednávku{customerName ? `, ${customerName}` : ""}. Platba prebehla úspešne a technické detaily sme prijali. Náš technik vás bude čoskoro kontaktovať pre dohodnutie obhliadky.
+              </p>
+
+              {paymentStatus === "mock_success" && (
+                <div className="mt-4 bg-blue-50 border border-blue-100 text-blue-800 text-xs font-semibold p-3.5 rounded-lg text-left">
+                  <strong>Stripe Demo Mode:</strong> Táto objednávka bola spracovaná v simulovanom režime, keďže chýba Stripe konfigurácia. V produkcii budete presmerovaní na skutočnú platobnú bránu Stripe.
+                </div>
+              )}
+
+              <button
+                onClick={() => {
+                  setPaymentStatus(null);
+                  window.history.replaceState({}, document.title, window.location.pathname);
+                }}
+                className="focus-ring mt-6 w-full inline-flex min-h-12 items-center justify-center bg-slate-900 text-white font-extrabold text-xs uppercase tracking-wider hover:bg-slate-800 transition cursor-pointer rounded-lg"
+              >
+                Zavrieť
+              </button>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </main>
   );
 }

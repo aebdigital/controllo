@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         mock: true,
         message: "Stripe integration is prepped! Add STRIPE_SECRET_KEY to .env.local to enable real checkout.",
-        url: `${origin}/?payment=mock_success&name=${encodeURIComponent(name || "")}`,
+        url: `${origin}/kontrola-vozidla?payment=mock_success&name=${encodeURIComponent(name || "")}`,
       });
     }
 
@@ -37,7 +37,7 @@ export async function POST(request: Request) {
               name: "150-Bodová Kontrola Vozidla",
               description: `Kontrola vozidla pre: ${name}. Odkaz: ${adUrl || "Neuvedený"}`,
             },
-            unit_amount: 50, // TEST PRICE 0.50 EUR — revert to 15900 (159.00 EUR) before launch
+            unit_amount: 15900, // 159.00 EUR in cents
           },
           quantity: 1,
         },
@@ -51,8 +51,8 @@ export async function POST(request: Request) {
         ad_url: adUrl || "",
         notes: note || "",
       },
-      success_url: `${origin}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/?payment=cancelled`,
+      success_url: `${origin}/kontrola-vozidla?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/kontrola-vozidla?payment=cancelled`,
     });
 
     return NextResponse.json({ url: session.url });

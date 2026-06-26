@@ -45,7 +45,7 @@ export default function Header() {
 
         <div className="hidden md:block">
           <Link
-            href="/#objednavka"
+            href="/kontrola-vozidla#objednavka"
             className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 border border-brand bg-brand px-6 py-3 text-xs font-black uppercase tracking-wider text-white transition-all duration-200 hover:bg-brand-hover hover:shadow-lg hover:shadow-brand/20 active:scale-[0.98] cursor-pointer"
           >
             Objednať kontrolu
@@ -137,7 +137,7 @@ export default function Header() {
               </div>
               <div className="border-t border-slate-100 pt-6">
                 <Link
-                  href="/#objednavka"
+                  href="/kontrola-vozidla#objednavka"
                   onClick={() => setMobileMenuOpen(false)}
                   className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 border border-brand bg-brand px-6 py-3 text-xs font-black uppercase tracking-wider text-white transition-all duration-200 hover:bg-brand-hover hover:shadow-lg hover:shadow-brand/20 active:scale-[0.98] cursor-pointer"
                 >
