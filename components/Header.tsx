@@ -26,11 +26,11 @@ export default function Header() {
           <Link className="hover:text-brand transition" href="/#ako">
             Ako to prebieha
           </Link>
-          <Link className="hover:text-brand transition" href="/kontrola-vozidla">
-            Služba detail
+          <Link className="hover:text-brand transition" href="/#kontrola">
+            Čo kontrolujeme
           </Link>
-          <Link className="hover:text-brand transition" href="/#mapa">
-            Pokrytie
+          <Link className="hover:text-brand transition" href="/#cena">
+            Cena
           </Link>
           <Link className="hover:text-brand transition" href="/#recenzie">
             Recenzie
@@ -45,7 +45,7 @@ export default function Header() {
 
         <div className="hidden md:block">
           <Link
-            href="/kontrola-vozidla#objednavka"
+            href="/#objednavka"
             className="focus-ring inline-flex min-h-12 items-center justify-center gap-2 border border-brand bg-brand px-6 py-3 text-xs font-black uppercase tracking-wider text-white transition-all duration-200 hover:bg-brand-hover hover:shadow-lg hover:shadow-brand/20 active:scale-[0.98] cursor-pointer"
           >
             Objednať kontrolu
@@ -100,17 +100,17 @@ export default function Header() {
                   </Link>
                   <Link
                     className="hover:text-brand transition"
-                    href="/kontrola-vozidla"
+                    href="/#kontrola"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Služba detail
+                    Čo kontrolujeme
                   </Link>
                   <Link
                     className="hover:text-brand transition"
-                    href="/#mapa"
+                    href="/#cena"
                     onClick={() => setMobileMenuOpen(false)}
                   >
-                    Pokrytie
+                    Cena
                   </Link>
                   <Link
                     className="hover:text-brand transition"
@@ -137,7 +137,7 @@ export default function Header() {
               </div>
               <div className="border-t border-slate-100 pt-6">
                 <Link
-                  href="/kontrola-vozidla#objednavka"
+                  href="/#objednavka"
                   onClick={() => setMobileMenuOpen(false)}
                   className="focus-ring inline-flex min-h-12 w-full items-center justify-center gap-2 border border-brand bg-brand px-6 py-3 text-xs font-black uppercase tracking-wider text-white transition-all duration-200 hover:bg-brand-hover hover:shadow-lg hover:shadow-brand/20 active:scale-[0.98] cursor-pointer"
                 >

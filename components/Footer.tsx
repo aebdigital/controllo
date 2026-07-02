@@ -2,7 +2,7 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Mail, Phone } from "lucide-react";
+import { Mail } from "lucide-react";
 import logo from "../logo.png";
 
 export default function Footer() {
@@ -31,8 +31,13 @@ export default function Footer() {
             <h4 className="text-xs font-black uppercase tracking-wider text-slate-900">Užitočné odkazy</h4>
             <ul className="space-y-2 text-sm font-bold text-slate-600">
               <li>
-                <Link href="/kontrola-vozidla" className="hover:text-brand transition">
-                  Detail 150-bodovej kontroly
+                <Link href="/#kontrola" className="hover:text-brand transition">
+                  Rozsah 150-bodovej kontroly
+                </Link>
+              </li>
+              <li>
+                <Link href="/#objednavka" className="hover:text-brand transition">
+                  Objednať kontrolu
                 </Link>
               </li>
               <li>
@@ -59,10 +64,6 @@ export default function Footer() {
               <a className="flex items-center gap-2 hover:text-brand transition" href="mailto:info@controllo.sk">
                 <Mail aria-hidden="true" size={16} />
                 info@controllo.sk
-              </a>
-              <a className="flex items-center gap-2 hover:text-brand transition" href="tel:+421XXXXXXXXX">
-                <Phone aria-hidden="true" size={16} />
-                +421 XXX XXX XXX
               </a>
             </div>
           </div>

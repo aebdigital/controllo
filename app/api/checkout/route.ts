@@ -19,7 +19,7 @@ export async function POST(request: Request) {
       return NextResponse.json({
         mock: true,
         message: "Stripe integration is prepped! Add STRIPE_SECRET_KEY to .env.local to enable real checkout.",
-        url: `${origin}/kontrola-vozidla?payment=mock_success&name=${encodeURIComponent(name || "")}`,
+        url: `${origin}/?payment=mock_success&name=${encodeURIComponent(name || "")}`,
       });
     }
 
@@ -51,8 +51,8 @@ export async function POST(request: Request) {
         ad_url: adUrl || "",
         notes: note || "",
       },
-      success_url: `${origin}/kontrola-vozidla?payment=success&session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/kontrola-vozidla?payment=cancelled`,
+      success_url: `${origin}/?payment=success&session_id={CHECKOUT_SESSION_ID}`,
+      cancel_url: `${origin}/?payment=cancelled#objednavka`,
     });
 
     return NextResponse.json({ url: session.url });

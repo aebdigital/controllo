@@ -1,22 +1,27 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { W, H, path as slovakiaPath, project } from "./slovakia-map-data";
 import {
   ArrowRight,
-  BadgeCheck,
   Camera,
   Check,
-  ClipboardCheck,
+  ChevronDown,
+  Clock,
+  FileText,
   Gauge,
+  Info,
   MapPin,
+  Minus,
+  PhoneCall,
   ShieldCheck,
   Star,
+  UserCheck,
   Wrench,
-  ChevronDown,
-  Info,
+  Car,
+  X,
 } from "lucide-react";
 
 const mapPins = [
@@ -50,44 +55,192 @@ const steps = [
   {
     title: "Objednáš kontrolu",
     text: "Pošli nám odkaz na inzerát a základné kontaktné údaje.",
-    image: "https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&w=900&q=82",
+    image: "/1.png",
+    imageAlt: "Objednávka kontroly vozidla",
   },
   {
     title: "Ozveme sa ti",
     text: "Dohodneme termín, miesto obhliadky a všetky potrebné detaily.",
-    image: "https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&w=900&q=82",
+    image: "/2.png",
+    imageAlt: "Dohodnutie termínu kontroly vozidla",
   },
   {
     title: "Preveríme auto",
     text: "Technik skontroluje vozidlo priamo u predajcu a urobí skúšobnú jazdu.",
-    image: "https://images.unsplash.com/photo-1625047509168-a7026f36de04?auto=format&fit=crop&w=900&q=82",
+    image: "/3.png",
+    imageAlt: "Technická kontrola auta pred kúpou",
   },
   {
     title: "Dostaneš report",
     text: "Pošleme jasné zhrnutie stavu a odporúčanie, či auto kúpiť.",
-    image: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?auto=format&fit=crop&w=900&q=82",
+    image: "/4.png",
+    imageAlt: "Záverečný report z kontroly vozidla",
   },
 ];
 
-const checks = [
-  "Stav motora a prevodovky",
-  "Podvozok a brzdy",
-  "Karosériu a lak",
-  "Interiér vozidla",
-  "Diagnostiku chýb",
-  "Skúšobnú jazdu",
-  "Fotodokumentáciu",
-  "Detailný report",
+interface ChecklistCategory {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ComponentType<{ size?: number | string }>;
+  items: string[];
+}
+
+const checklistCategories: ChecklistCategory[] = [
+  {
+    id: "karoseria",
+    title: "Karoséria a Lak",
+    description: "Zisťujeme reálnu históriu nehôd a meriame hrúbku laku.",
+    icon: Car,
+    items: [
+      "Meranie hrúbky laku digitálnym prístrojom na všetkých kovových a hliníkových dieloch",
+      "Analýza lícovania jednotlivých dielov karosérie (kontrola škár a medzier)",
+      "Kontrola originálnych spojov, zvarov a tmelov v motorovom priestore a kufri",
+      "Preverenie upevňovacích skrutiek blatníkov, kapoty a dverí na stopy po demontáži",
+      "Kontrola stavu všetkých skiel vrátane čelného (overenie roku výroby a poškodení)",
+      "Kontrola nosných stĺpikov karosérie a deformačných zón na známky rovnania",
+      "Zisťovanie prítomnosti korózie (blatníky, prahy, spodky dverí)",
+    ],
+  },
+  {
+    id: "motor",
+    title: "Motor a Prevodovka",
+    description: "Kontrola srdca vozidla na úniky kvapalín a plynulý chod.",
+    icon: Wrench,
+    items: [
+      "Vizuálna kontrola tesnosti motora (stopy po úniku oleja, chladiacej zmesi)",
+      "Kontrola stavu a veku prevádzkových kvapalín (motorový olej, brzdová a chladiaca kvapalina)",
+      "Hodnotenie zvuku motora za studena a za tepla (klepanie, nezvyčajné vibrácie)",
+      "Kontrola stavu hnacích remeňov a viditeľných častí rozvodov",
+      "Overenie funkčnosti spojky a plynulosti radenia (manuálna aj automatická prevodovka)",
+      "Analýza výfukových plynov (nadmerná dymivosť motora)",
+    ],
+  },
+  {
+    id: "podvozok",
+    title: "Podvozok, Riadenie a Brzdy",
+    description: "Záruka bezpečnosti – kontrola vôle čapov, tlmičov a bŕzd.",
+    icon: ShieldCheck,
+    items: [
+      "Meranie a hodnotenie opotrebovania brzdových kotúčov a brzdových platničiek",
+      "Kontrola stavu a veku pneumatík (hĺbka dezénu, rovnomernosť opotrebovania)",
+      "Preverenie stavu ložísk kolies (prítomnosť hučania alebo vôle)",
+      "Kontrola korózie a celistvosti podvozkových plechov a výfukového potrubia",
+    ],
+  },
+  {
+    id: "diagnostika",
+    title: "Počítačová Diagnostika",
+    description: "Hĺbkový sken všetkých riadiacich jednotiek priamo na mieste.",
+    icon: Gauge,
+    items: [
+      "Pripojenie profesionálnej diagnostiky k OBD portu vozidla",
+      "Kompletné vyčítanie chybových kódov zo všetkých dostupných riadiacich jednotiek (ECU)",
+      "Kontrola pamäte závad motora, prevodovky, airbagov, ABS/ESP a komfortnej výbavy",
+      "Kontrola funkčnosti dobíjania alternátora a kondície autobatérie",
+    ],
+  },
+  {
+    id: "interier",
+    title: "Interiér a Výbava",
+    description: "Každé tlačidlo a funkcia musí prejsť našou kontrolou.",
+    icon: UserCheck,
+    items: [
+      "Detailná kontrola opotrebovania volantu, pedálov, radiacej páky a sedadiel",
+      "Overenie funkčnosti kúrenia a kompletného klimatizačného systému",
+      "Test všetkých elektrických prvkov (sťahovanie okien, zrkadlá, zámky dverí, šíber)",
+      "Kontrola infotainmentu, audiosystému, navigácie a cúvacej kamery/senzorov",
+      "Overenie funkčnosti bezpečnostných pásov a mechanizmu nastavenia sedadiel",
+      "Kontrola prítomnosti vody/vlhkosti pod kobercami (kontrola zatekania)",
+    ],
+  },
 ];
 
-const packageItems = [
-  "Fyzická obhliadka vozidla technikom",
-  "Kontrola exteriéru, interiéru a technického stavu",
-  "Načítanie chýb a kontrola riadiacich jednotiek",
-  "Skúšobná jazda a vyhodnotenie správania vozidla",
-  "Kontrola laku, hrúbky laku a známok nehody",
-  "Detailné fotky vozidla a všetkých nedostatkov",
-  "Jasné odporúčanie: kúpiť alebo nekúpiť",
+type ComparisonTone = "good" | "warn" | "bad";
+interface ComparisonCell {
+  text: string;
+  tone: ComparisonTone;
+}
+
+const comparisonRows: { label: string; controllo: ComparisonCell; self: ComparisonCell; garage: ComparisonCell }[] = [
+  {
+    label: "Cena a cestovné náklady",
+    controllo: { text: "159 € (Konečná cena vrátane cesty)", tone: "good" },
+    self: { text: "Cestovné náklady + tvoj stratený čas", tone: "bad" },
+    garage: { text: "50-80 € za prehliadku + odťah/cesta", tone: "warn" },
+  },
+  {
+    label: "Dĺžka a rozsah prehliadky",
+    controllo: { text: "cca 1.5 - 2 hodiny (150 bodov)", tone: "good" },
+    self: { text: "cca 30 minút (vizuálny pohľad)", tone: "bad" },
+    garage: { text: "cca 1 hodina (bežné úkony)", tone: "warn" },
+  },
+  {
+    label: "Meranie hrúbky laku",
+    controllo: { text: "Áno (profesionálny digitálny prístroj)", tone: "good" },
+    self: { text: "Len vizuálny odhad", tone: "bad" },
+    garage: { text: "Závisí od vybavenia servisu", tone: "warn" },
+  },
+  {
+    label: "Diagnostika chýb",
+    controllo: { text: "Áno (Hĺbkový sken všetkých RJ priamo na mieste)", tone: "good" },
+    self: { text: "Nie", tone: "bad" },
+    garage: { text: "Áno (musíš prísť do servisu)", tone: "warn" },
+  },
+  {
+    label: "Tvoja prítomnosť",
+    controllo: { text: "Nepovinná (Všetko vybavíme za teba)", tone: "good" },
+    self: { text: "Povinná (Musíš cestovať osobne)", tone: "bad" },
+    garage: { text: "Povinná (Musíš auto doviezť)", tone: "bad" },
+  },
+  {
+    label: "Záverečný report",
+    controllo: { text: "Áno (Prehľadný digitálny report do 24 hod.)", tone: "good" },
+    self: { text: "Nie", tone: "bad" },
+    garage: { text: "Len ústne zhodnotenie", tone: "warn" },
+  },
+];
+
+const comparisonToneStyles: Record<ComparisonTone, { cell: string; icon: string }> = {
+  good: { cell: "bg-emerald-50/60 text-emerald-900 font-extrabold", icon: "bg-emerald-100 text-emerald-700" },
+  warn: { cell: "bg-amber-50/40 text-amber-900 font-medium", icon: "bg-amber-100 text-amber-700" },
+  bad: { cell: "bg-red-50/50 text-red-800 font-medium", icon: "bg-red-100 text-red-600" },
+};
+
+function ComparisonCellContent({ cell }: { cell: ComparisonCell }) {
+  const styles = comparisonToneStyles[cell.tone];
+  const Icon = cell.tone === "good" ? Check : cell.tone === "bad" ? X : Minus;
+  return (
+    <div className="flex items-start gap-2.5">
+      <span className={`flex size-5 shrink-0 items-center justify-center rounded-full mt-0.5 ${styles.icon}`}>
+        <Icon size={12} strokeWidth={3} />
+      </span>
+      <span className="leading-snug">{cell.text}</span>
+    </div>
+  );
+}
+
+const priceIncludes = [
+  {
+    icon: ShieldCheck,
+    title: "Fyzická obhliadka technikom",
+    text: "Osobná prítomnosť skúseného autotechnika pri vozidle.",
+  },
+  {
+    icon: FileText,
+    title: "Detailný elektronický report",
+    text: "Výsledky všetkých 150 bodov kontroly v prehľadnej tabuľke.",
+  },
+  {
+    icon: Camera,
+    title: "Bohatá fotodokumentácia",
+    text: "Zábery auta a detailné fotky zistených nedostatkov či lakovania.",
+  },
+  {
+    icon: PhoneCall,
+    title: "Telefonická konzultácia",
+    text: "Ihneď po obhliadke ti technik zavolá a preberie s tebou stav auta.",
+  },
 ];
 
 const reviews = [
@@ -95,45 +248,17 @@ const reviews = [
     name: "Libor F.",
     car: "Ford Focus RS",
     text: "Milo ma prekvapila znalosť technika, jeho prístup a komunikácia s predajcom. Prehliadka prebehla detailne vrátane skúšobnej jazdy.",
-    image: "https://images.unsplash.com/photo-1552519507-da3b142c6e3d?auto=format&fit=crop&w=900&q=80",
   },
   {
     name: "Jirí L.",
     car: "BMW 320d",
     text: "So službou som maximálne spokojný. Technik mi venoval viac času ako musel a všetko zrozumiteľne vysvetlil.",
-    image: "https://images.unsplash.com/photo-1555215695-3004980ad54e?auto=format&fit=crop&w=900&q=80",
   },
   {
     name: "Martina P.",
     car: "Kia Sportage",
     text: "Rýchle a profesionálne jednanie. Pán bol ochotný, poradil a pripravil prehľadné detaily o vozidle.",
-    image: "https://images.unsplash.com/photo-1609521263047-f8f205293f24?auto=format&fit=crop&w=900&q=80",
   },
-];
-
-const featureCards = [
-  {
-    icon: Wrench,
-    title: "Technický stav",
-    text: "Motor, prevodovka, brzdy, podvozok a viditeľné servisné riziká.",
-  },
-  {
-    icon: Gauge,
-    title: "Diagnostika",
-    text: "Načítanie chýb a kontrola riadiacich jednotiek priamo na mieste.",
-  },
-  {
-    icon: Camera,
-    title: "Fotodokumentácia",
-    text: "Prehľadné fotky auta, detailov a nedostatkov, ktoré musíš vidieť.",
-  },
-];
-
-const reasons = [
-  "Nezávislá kontrola, sme na tvojej strane",
-  "Dlhoročné skúsenosti na trhu s jazdenými autami",
-  "Pokrytie po celom Slovensku",
-  "Rýchle objednanie online",
 ];
 
 const faqs = [
@@ -157,54 +282,23 @@ const faqs = [
 
 function CtaButton({
   children,
-  href = "/kontrola-vozidla#objednavka",
+  href = "#objednavka",
   variant = "primary",
-  onClick,
 }: {
   children: React.ReactNode;
   href?: string;
   variant?: "primary" | "secondary";
-  onClick?: () => void;
 }) {
-  const isHash = href.startsWith("#");
-  
   const baseClass = "focus-ring inline-flex min-h-12 items-center justify-center gap-2 border px-6 py-3 text-xs font-black uppercase tracking-wider transition-all duration-200 cursor-pointer";
   const variantClass = variant === "primary"
     ? "border-[#189653] bg-[#189653] text-white hover:bg-[#127744] hover:shadow-lg hover:shadow-brand/20 active:scale-[0.98]"
     : "border-slate-200 bg-white text-slate-800 hover:border-brand hover:text-brand active:scale-[0.98]";
 
-  if (isHash) {
-    return (
-      <a href={href} onClick={onClick} className={`${baseClass} ${variantClass}`}>
-        {children}
-        <ArrowRight aria-hidden="true" size={16} strokeWidth={2.7} />
-      </a>
-    );
-  }
-
   return (
-    <Link href={href} className={`${baseClass} ${variantClass}`}>
+    <a href={href} className={`${baseClass} ${variantClass}`}>
       {children}
       <ArrowRight aria-hidden="true" size={16} strokeWidth={2.7} />
-    </Link>
-  );
-}
-
-function Rating({ variant = "light" }: { variant?: "light" | "dark" }) {
-  const textColor = variant === "dark" ? "text-white" : "text-slate-800";
-  const mutedColor = variant === "dark" ? "text-slate-400" : "text-slate-500";
-  return (
-    <div className="flex items-center gap-3">
-      <span className={`text-sm font-black ${textColor}`}>4.9</span>
-      <div className="flex gap-0.5 text-[#189653]" aria-label="Hodnotenie 5 z 5">
-        {Array.from({ length: 5 }).map((_, index) => (
-          <Star key={index} size={15} fill="currentColor" strokeWidth={0} />
-        ))}
-      </div>
-      <span className={`text-sm font-bold ${mutedColor}`}>
-        recenzie na <span className="font-black text-[#4285f4]">G</span><span className="font-black text-[#ea4335]">o</span><span className="font-black text-[#fbbc05]">o</span><span className="font-black text-[#4285f4]">g</span><span className="font-black text-[#34a853]">l</span><span className="font-black text-[#ea4335]">e</span>
-      </span>
-    </div>
+    </a>
   );
 }
 
@@ -308,48 +402,101 @@ function SlovakiaMap() {
 
 export default function Home() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>("karoseria");
+  const [formData, setFormData] = useState({
+    name: "",
+    phone: "",
+    email: "",
+    adUrl: "",
+    note: "",
+  });
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errorMessage, setErrorMessage] = useState("");
+  const [paymentStatus, setPaymentStatus] = useState<string | null>(null);
+  const [customerName, setCustomerName] = useState("");
+
   const toggleFaq = (index: number) => {
     setActiveFaq(activeFaq === index ? null : index);
+  };
+
+  useEffect(() => {
+    // Check payment status from query parameters
+    const params = new URLSearchParams(window.location.search);
+    const payment = params.get("payment");
+    if (payment) {
+      setPaymentStatus(payment);
+      setCustomerName(params.get("name") || "");
+    }
+  }, []);
+
+  const clearPaymentStatus = () => {
+    setPaymentStatus(null);
+    window.history.replaceState({}, document.title, window.location.pathname);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!formData.name || !formData.phone || !formData.email) {
+      setErrorMessage("Prosím, vyplňte meno, telefón a e-mail.");
+      return;
+    }
+
+    setIsSubmitting(true);
+    setErrorMessage("");
+
+    try {
+      const response = await fetch("/api/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(formData),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.error || "Nepodarilo sa vytvoriť objednávku.");
+      }
+
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        throw new Error("Neplatná odpoveď zo servera.");
+      }
+    } catch (err: unknown) {
+      console.error(err);
+      setErrorMessage(err instanceof Error ? err.message : "Nastala neznáma chyba. Skúste to znova.");
+      setIsSubmitting(false);
+    }
   };
 
   return (
     <main className="bg-slate-50 min-h-screen">
 
-
       {/* Hero Section */}
       <section className="relative overflow-hidden bg-white py-12 lg:py-24 border-b border-slate-100">
-        <div className="container-shell grid gap-12 items-center lg:grid-cols-[1.1fr_0.9fr]">
+        <div className="container-shell grid gap-12 items-center lg:grid-cols-[0.95fr_1.05fr]">
           <motion.div
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
             className="flex flex-col items-start"
           >
-            <div className="mb-6 inline-flex items-center gap-2 bg-emerald-50 px-4 py-2 text-xs font-extrabold uppercase tracking-wider text-emerald-800 rounded-full">
-              <BadgeCheck aria-hidden="true" size={15} className="text-brand" />
-              Kontrola vozidiel pred kúpou po celom SR
-            </div>
-            
-            <h1 className="text-4xl font-extrabold leading-[1.08] tracking-tight text-slate-900 sm:text-5xl lg:text-6xl">
-              Nekupuj auto <span className="text-brand">naslepo</span>.
+            <h1 className="text-5xl font-extrabold leading-[1.05] tracking-tight text-slate-900 sm:text-6xl lg:text-7xl">
+              Nekupuj auto <span className="text-brand">naslepo</span>
             </h1>
-            
+
             <p className="mt-5 max-w-xl text-lg text-slate-600 font-medium">
               Skontrolujeme vozidlo za teba kdekoľvek na Slovensku. Získaš spoľahlivý, nezávislý pohľad na technický stav auta ešte pred kúpou.
             </p>
 
             <div className="mt-8 flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-              <CtaButton href="/kontrola-vozidla#objednavka">Preveriť auto</CtaButton>
-              <CtaButton href="/kontrola-vozidla" variant="secondary">
-                Pozrieť detaily služby
+              <CtaButton href="#objednavka">Preveriť auto</CtaButton>
+              <CtaButton href="#kontrola" variant="secondary">
+                Čo všetko kontrolujeme
               </CtaButton>
             </div>
 
-            <div className="mt-8 flex flex-wrap items-center gap-5 border-t border-slate-100 pt-6 w-full">
-              <Rating />
-            </div>
-
-            <div className="mt-8 grid gap-3 grid-cols-1 sm:grid-cols-2 w-full">
+            <div className="mt-8 grid gap-3 grid-cols-1 sm:grid-cols-2 w-full border-t border-slate-100 pt-8">
               {trustPoints.map((point) => (
                 <div
                   className="flex items-center gap-3 border border-slate-100 bg-slate-50/50 px-4 py-3 text-sm font-bold text-slate-800 rounded-lg"
@@ -369,13 +516,13 @@ export default function Home() {
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ duration: 0.6, delay: 0.2 }}
-            className="relative min-h-[440px] md:min-h-[500px] flex items-center justify-center lg:justify-end"
+            className="relative min-h-[500px] md:min-h-[560px] lg:min-h-[620px] flex items-center justify-center lg:justify-end"
           >
-            <div className="relative w-full max-w-md bg-slate-100/40 border border-slate-100/60 p-6 rounded-2xl overflow-hidden aspect-[4/3] shadow-inner">
+            <div className="relative w-full max-w-xl lg:max-w-2xl bg-slate-100/40 border border-slate-100/60 rounded-2xl overflow-hidden aspect-[5/4] shadow-inner">
               <img
                 className="absolute inset-0 w-full h-full object-cover opacity-90 rounded-2xl transition duration-500 hover:scale-[1.02]"
-                src="https://images.unsplash.com/photo-1606220838315-056192d5e927?auto=format&fit=crop&w=1200&q=82"
-                alt="Prehliadka vozidla technikom"
+                src="/3.png"
+                alt="Technická kontrola auta pred kúpou"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-slate-950/60 via-transparent to-transparent rounded-2xl" />
             </div>
@@ -415,25 +562,12 @@ export default function Home() {
               </div>
             </motion.div>
 
-            {/* Float Card 2: Recommendation Badge */}
-            <motion.div
-              initial={{ x: -30, y: 20, opacity: 0 }}
-              animate={{ x: 0, y: 0, opacity: 1 }}
-              transition={{ delay: 0.6 }}
-              className="absolute bottom-8 left-4 md:-left-4 bg-white/95 border border-slate-100/80 px-5 py-4 rounded-xl shadow-lg backdrop-blur-md"
-            >
-              <p className="text-sm font-extrabold text-slate-900">Záverečný Report</p>
-              <p className="text-xs font-bold text-[#189653] flex items-center gap-1.5 mt-0.5">
-                <span className="inline-block size-2 rounded-full bg-brand animate-ping" />
-                Odporúčanie technika k nákupu
-              </p>
-            </motion.div>
           </motion.div>
         </div>
       </section>
 
       {/* Steps (Ako prebieha kontrola) */}
-      <section id="ako" className="py-20 bg-slate-50">
+      <section id="ako" className="py-20 bg-slate-50 scroll-mt-24">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -458,33 +592,224 @@ export default function Home() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ duration: 0.5, delay: index * 0.1 }}
-                className="group relative overflow-hidden bg-white border border-slate-100 rounded-2xl shadow-sm hover-lift"
+                className="group relative bg-white border border-slate-100 rounded-2xl shadow-sm hover-lift overflow-hidden p-4"
               >
-                <div className="relative h-48 overflow-hidden">
+                <div className="relative aspect-[4/3] overflow-hidden rounded-xl bg-slate-100">
                   <img
-                    className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.04]"
                     src={step.image}
-                    alt={step.title}
+                    alt={step.imageAlt}
+                    loading={index === 0 ? "eager" : "lazy"}
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.03]"
                   />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-950/70 via-slate-950/20 to-transparent" />
-                  <span className="absolute left-4 top-3 text-5xl font-black text-white/20 select-none">
+                </div>
+                <div className="mt-5 flex items-center gap-3">
+                  <span className="inline-flex size-12 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-brand text-lg font-black">
                     0{index + 1}
                   </span>
-                </div>
-                <div className="p-6">
                   <h3 className="text-lg font-bold text-slate-950 group-hover:text-brand transition">{step.title}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-slate-600 font-medium">
-                    {step.text}
-                  </p>
                 </div>
+                <p className="mt-2 text-sm leading-relaxed text-slate-600 font-medium">
+                  {step.text}
+                </p>
               </motion.article>
             ))}
           </div>
         </motion.div>
       </section>
 
+      {/* Interactive 150-Point Checklist */}
+      <section id="kontrola" className="py-20 bg-white border-y border-slate-100 scroll-mt-24">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="container-shell"
+        >
+          <div className="mx-auto max-w-3xl text-center mb-12">
+            <p className="text-xs font-black uppercase tracking-wider text-brand">Hĺbková analýza</p>
+            <h2 className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">
+              Hlavné oblasti 150-bodovej kontroly
+            </h2>
+            <p className="mt-3 text-slate-600 font-medium">
+              Vyber si technickú kategóriu a pozri sa, čo všetko naši technici na mieste preverujú.
+            </p>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-[280px_1fr] items-start">
+            {/* Navigation Category Buttons */}
+            <div className="flex flex-row lg:flex-col gap-2 overflow-x-auto pb-4 lg:pb-0 scrollbar-none border-b lg:border-b-0 lg:border-r border-slate-200">
+              {checklistCategories.map((cat) => {
+                const Icon = cat.icon;
+                const isActive = activeCategory === cat.id;
+                return (
+                  <button
+                    key={cat.id}
+                    onClick={() => setActiveCategory(cat.id)}
+                    className={`flex items-center gap-3 px-5 py-4 text-sm font-extrabold tracking-tight transition rounded-xl text-left shrink-0 cursor-pointer ${
+                      isActive
+                        ? "bg-brand text-white shadow-md shadow-brand/10"
+                        : "bg-white text-slate-700 hover:bg-slate-100/50 border border-slate-100"
+                    }`}
+                  >
+                    <Icon size={18} />
+                    <span>{cat.title}</span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Checklist Items Display */}
+            <div className="bg-slate-50/50 border border-slate-100 rounded-2xl p-6 sm:p-8 shadow-sm">
+              <AnimatePresence mode="wait">
+                {checklistCategories.map((cat) => {
+                  if (cat.id !== activeCategory) return null;
+                  return (
+                    <motion.div
+                      key={cat.id}
+                      initial={{ opacity: 0, x: 10 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      exit={{ opacity: 0, x: -10 }}
+                      transition={{ duration: 0.25 }}
+                    >
+                      <div className="border-b border-slate-100 pb-4 mb-6">
+                        <h3 className="text-xl font-extrabold text-slate-900">{cat.title}</h3>
+                        <p className="text-sm text-slate-500 font-medium mt-1">{cat.description}</p>
+                      </div>
+
+                      <ul className="grid gap-3 sm:grid-cols-1 md:grid-cols-2">
+                        {cat.items.map((item, index) => (
+                          <li
+                            key={index}
+                            className="flex items-start gap-3 border border-slate-100 bg-white p-3.5 rounded-lg text-sm text-slate-700"
+                          >
+                            <div className="flex size-5 shrink-0 items-center justify-center bg-emerald-50 text-brand rounded-full mt-0.5">
+                              <Check size={12} strokeWidth={3.2} />
+                            </div>
+                            <span className="leading-tight text-slate-800 font-medium">{item}</span>
+                          </li>
+                        ))}
+                      </ul>
+                    </motion.div>
+                  );
+                })}
+              </AnimatePresence>
+            </div>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Comparison Chart */}
+      <section className="py-20 bg-slate-50">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="container-shell"
+        >
+          <div className="mx-auto max-w-3xl text-center mb-12">
+            <p className="text-xs font-black uppercase tracking-wider text-brand">Prečo Controllo</p>
+            <h2 className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">
+              Porovnanie možností pred kúpou auta
+            </h2>
+            <p className="mt-3 text-slate-600 font-medium">
+              Zisti, prečo je nezávislá obhliadka najlepším riešením z hľadiska času, odbornosti a nákladov.
+            </p>
+          </div>
+
+          <div className="overflow-x-auto">
+            <table className="w-full min-w-[700px] border-collapse bg-white border border-slate-100 rounded-2xl overflow-hidden shadow-sm">
+              <thead>
+                <tr className="bg-slate-900 text-white text-left text-xs font-black uppercase tracking-wider">
+                  <th className="p-5 border-r border-slate-800">Parametre</th>
+                  <th className="p-5 border-r border-slate-800 text-brand">Controllo obhliadka</th>
+                  <th className="p-5 border-r border-slate-800">Kúpa svojpomocne</th>
+                  <th className="p-5">Návšteva autoservisu</th>
+                </tr>
+              </thead>
+              <tbody className="text-sm text-slate-700">
+                {comparisonRows.map((row, i) => (
+                  <tr key={i} className="border-b border-slate-100">
+                    <td className="p-5 border-r border-slate-100 font-extrabold text-slate-900">{row.label}</td>
+                    <td className={`p-5 border-r border-slate-100 ${comparisonToneStyles[row.controllo.tone].cell}`}>
+                      <ComparisonCellContent cell={row.controllo} />
+                    </td>
+                    <td className={`p-5 border-r border-slate-100 ${comparisonToneStyles[row.self.tone].cell}`}>
+                      <ComparisonCellContent cell={row.self} />
+                    </td>
+                    <td className={`p-5 ${comparisonToneStyles[row.garage.tone].cell}`}>
+                      <ComparisonCellContent cell={row.garage} />
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </motion.div>
+      </section>
+
+      {/* Pricing */}
+      <section id="cena" className="py-20 bg-slate-950 text-white border-y border-slate-900 scroll-mt-24">
+        <motion.div
+          initial={{ opacity: 0, y: 30 }}
+          whileInView={{ opacity: 1, y: 0 }}
+          viewport={{ once: true, margin: "-100px" }}
+          transition={{ duration: 0.6 }}
+          className="container-shell"
+        >
+          <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] items-center">
+            <div>
+              <p className="text-xs font-black uppercase tracking-wider text-brand">Jasné podmienky</p>
+              <h2 className="mt-2 text-3xl font-extrabold !text-white sm:text-4xl">
+                Kompletná kontrola za jednu konečnú cenu
+              </h2>
+              <p className="mt-4 text-slate-400 font-medium leading-relaxed">
+                U nás neplatíš za žiadne „verzie“ ani balíky. Každé auto preveríme na maximum. Služba je all-inclusive, bez skrytých poplatkov na mieste.
+              </p>
+              <ul className="mt-8 space-y-4">
+                {priceIncludes.map((feature) => (
+                  <li key={feature.title} className="flex gap-3">
+                    <span className="flex size-8 shrink-0 items-center justify-center rounded-lg bg-emerald-950/60 text-brand">
+                      <feature.icon size={18} />
+                    </span>
+                    <div>
+                      <h4 className="text-sm font-extrabold !text-white">{feature.title}</h4>
+                      <p className="text-xs text-slate-400 font-medium mt-0.5 leading-relaxed">{feature.text}</p>
+                    </div>
+                  </li>
+                ))}
+              </ul>
+            </div>
+
+            <motion.div
+              whileHover={{ y: -3 }}
+              className="border border-slate-800 bg-slate-900/60 p-8 rounded-2xl shadow-2xl relative overflow-hidden"
+            >
+              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Konečná cena kontroly</p>
+              <div className="flex flex-wrap items-end gap-3 mt-3">
+                <span className="text-5xl font-black text-white">159 €</span>
+                <span className="pb-1 text-lg font-bold text-slate-500 line-through">
+                  199 €
+                </span>
+                <span className="bg-emerald-950/40 text-brand text-xs font-black px-2 py-1 rounded-md mb-1">
+                  Ušetríš 40 €
+                </span>
+              </div>
+              <div className="mt-6 inline-flex items-center gap-2 bg-slate-950/60 text-slate-400 border border-slate-800 px-4 py-2.5 rounded-lg text-xs font-bold">
+                <Info size={14} className="text-slate-400" />
+                V cene je už zahrnuté aj cestovné a technika
+              </div>
+              <div className="mt-8">
+                <CtaButton href="#objednavka">Objednať kontrolu</CtaButton>
+              </div>
+            </motion.div>
+          </div>
+        </motion.div>
+      </section>
+
       {/* Slovak Map */}
-      <section id="mapa" className="py-20 bg-white border-y border-slate-100">
+      <section id="mapa" className="py-20 bg-white border-b border-slate-100 scroll-mt-24">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -523,129 +848,8 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Pricing / Packages */}
-      <section id="cena" className="py-20 bg-slate-950 text-white border-y border-slate-900">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-          className="container-shell"
-        >
-          <div className="grid gap-12 lg:grid-cols-[1fr_1.1fr] items-center">
-            <div>
-              <p className="text-xs font-black uppercase tracking-wider text-brand">Jasné podmienky</p>
-              <h2 className="mt-2 text-3xl font-extrabold !text-white sm:text-4xl">
-                Kompletná kontrola vozidla za 159 €
-              </h2>
-              <p className="mt-4 text-slate-400 font-medium leading-relaxed">
-                U nás neplatíš za žiadne „verzie“ ani balíky. Každé auto preveríme na maximum. Služba je all-inclusive, bez skrytých poplatkov na mieste.
-              </p>
-              <div className="mt-6 inline-flex items-center gap-2 bg-slate-900/60 text-slate-400 border border-slate-800 px-4 py-2.5 rounded-lg text-xs font-bold">
-                <Info size={14} className="text-slate-400" />
-                V cene je už zahrnuté aj cestovné technika
-              </div>
-            </div>
-
-            <motion.div
-              whileHover={{ y: -3 }}
-              className="border border-slate-800 bg-slate-900/60 p-8 rounded-2xl shadow-2xl relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 bg-brand text-white text-[10px] font-black uppercase tracking-wider px-4 py-1.5 rounded-bl-xl">
-                Akcia limitovaná
-              </div>
-              <p className="text-xs font-extrabold uppercase tracking-wider text-slate-400">Konečná cena kontroly</p>
-              <div className="flex flex-wrap items-end gap-3 mt-3">
-                <span className="text-5xl font-black text-white">159 €</span>
-                <span className="pb-1 text-lg font-bold text-slate-500 line-through">
-                  199 €
-                </span>
-                <span className="bg-emerald-950/40 text-brand text-xs font-black px-2 py-1 rounded-md mb-1">
-                  Ušetríš 40 €
-                </span>
-              </div>
-              <p className="mt-4 text-sm text-slate-300 font-semibold leading-relaxed">
-                Fyzická kontrola exteriéru, diagnostika všetkých RJ, meranie hrúbky laku, skúšobná jazda, fotodokumentácia a záverečné telefonické odporúčanie od technika.
-              </p>
-              <div className="mt-8">
-                <CtaButton href="/kontrola-vozidla#objednavka">Záväzne objednať obhliadku</CtaButton>
-              </div>
-            </motion.div>
-          </div>
-        </motion.div>
-      </section>
-
-      {/* Services Detail List */}
-      <section id="kontrola" className="py-20 bg-white border-y border-slate-100">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-          className="container-shell"
-        >
-          <div className="grid gap-12 lg:grid-cols-[0.9fr_1.1fr]">
-            <div>
-              <p className="text-xs font-black uppercase tracking-wider text-brand">Rozsah obhliadky</p>
-              <h2 className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">
-                Čo všetko detailne skontrolujeme
-              </h2>
-              <p className="mt-3 text-slate-600 font-medium">
-                Naši technici sa zamerajú na rizikové a často opotrebované súčasti vozidla.
-              </p>
-              <div className="mt-8 space-y-4">
-                {featureCards.map((card) => (
-                  <div className="flex gap-4 border border-slate-100 bg-slate-50/30 p-5 rounded-xl" key={card.title}>
-                    <span className="grid size-12 shrink-0 place-items-center bg-emerald-50 text-brand rounded-lg">
-                      <card.icon aria-hidden="true" size={22} strokeWidth={2.5} />
-                    </span>
-                    <div>
-                      <h3 className="text-base font-extrabold text-slate-900">
-                        {card.title}
-                      </h3>
-                      <p className="mt-1 text-sm text-slate-500 font-medium leading-relaxed">
-                        {card.text}
-                      </p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-            
-            <div className="flex flex-col justify-between">
-              <div className="grid gap-3 sm:grid-cols-2">
-                {checks.map((item) => (
-                  <div
-                    className="flex items-center gap-3 border border-slate-100 bg-slate-50/50 p-4 rounded-xl font-bold text-slate-800"
-                    key={item}
-                  >
-                    <div className="flex size-7 shrink-0 items-center justify-center bg-emerald-50 text-brand rounded-full">
-                      <ShieldCheck aria-hidden="true" size={15} strokeWidth={2.6} />
-                    </div>
-                    <span className="text-sm font-extrabold text-slate-900">{item}</span>
-                  </div>
-                ))}
-              </div>
-              
-              <div className="mt-8 border border-emerald-100 bg-emerald-50/20 p-6 rounded-xl flex items-start gap-4">
-                <Info className="text-brand shrink-0 mt-0.5" size={20} />
-                <div>
-                  <h4 className="text-sm font-extrabold text-slate-900">Chcete vedieť o 150-bodovej prehliadke viac?</h4>
-                  <p className="text-xs text-slate-600 mt-1 leading-relaxed font-medium">
-                    Prečítajte si kompletné technické detaily a jednotlivé body kontroly.
-                  </p>
-                  <Link href="/kontrola-vozidla" className="text-brand hover:underline text-xs font-black mt-2 inline-flex items-center gap-1">
-                    Zobraziť detail kontroly <ArrowRight size={12} />
-                  </Link>
-                </div>
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </section>
-
       {/* Customer Reviews */}
-      <section id="recenzie" className="py-20 bg-slate-950 text-white border-y border-slate-900">
+      <section id="recenzie" className="py-20 bg-slate-950 text-white border-y border-slate-900 scroll-mt-24">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -653,17 +857,11 @@ export default function Home() {
           transition={{ duration: 0.6 }}
           className="container-shell"
         >
-          <div className="flex flex-col justify-between gap-4 md:flex-row md:items-end">
-            <div>
-              <p className="text-xs font-black uppercase tracking-wider text-brand">Spätná väzba</p>
-              <h2 className="mt-2 text-3xl font-extrabold !text-white sm:text-4xl">
-                Čo hovoria naši zákazníci
-              </h2>
-            </div>
-            <div className="flex flex-col items-start md:items-end gap-1 shrink-0">
-              <Rating variant="dark" />
-              <p className="text-xs text-slate-400 font-bold">Na základe preverených nákupov</p>
-            </div>
+          <div className="mx-auto max-w-2xl text-center">
+            <p className="text-xs font-black uppercase tracking-wider text-brand">Spätná väzba</p>
+            <h2 className="mt-2 text-3xl font-extrabold !text-white sm:text-4xl">
+              Čo hovoria naši zákazníci
+            </h2>
           </div>
           <div className="mt-12 grid gap-6 md:grid-cols-3">
             {reviews.map((review, idx) => (
@@ -681,16 +879,11 @@ export default function Home() {
                       <Star key={index} size={15} fill="currentColor" strokeWidth={0} />
                     ))}
                   </div>
-                  <p className="text-sm leading-relaxed text-slate-300 font-medium italic">"{review.text}"</p>
+                  <p className="text-sm leading-relaxed text-slate-300 font-medium italic">&bdquo;{review.text}&ldquo;</p>
                 </div>
-                <div className="border-t border-slate-800 p-6 bg-slate-900/30 flex items-center gap-3">
-                  <div className="size-10 rounded-full overflow-hidden border border-slate-700 shrink-0">
-                    <img className="size-full object-cover" src={review.image} alt={review.name} />
-                  </div>
-                  <div>
-                    <p className="text-sm font-extrabold text-white">{review.name}</p>
-                    <p className="text-[11px] font-bold text-slate-400">{review.car}</p>
-                  </div>
+                <div className="border-t border-slate-800 p-6 bg-slate-900/30">
+                  <p className="text-sm font-extrabold text-white">{review.name}</p>
+                  <p className="text-[11px] font-bold text-slate-400">{review.car}</p>
                 </div>
               </motion.article>
             ))}
@@ -698,42 +891,125 @@ export default function Home() {
         </motion.div>
       </section>
 
-      {/* Package Contents Detail */}
-      <section id="balik" className="py-20 bg-white border-y border-slate-100">
+      {/* Booking Form Section */}
+      <section id="objednavka" className="py-20 bg-white border-b border-slate-100 scroll-mt-24">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: "-100px" }}
           transition={{ duration: 0.6 }}
-          className="container-shell grid gap-12 lg:grid-cols-[1fr_1.1fr] items-center"
+          className="container-shell grid gap-12 lg:grid-cols-[0.9fr_1.1fr]"
         >
           <div>
-            <p className="text-xs font-black uppercase tracking-wider text-brand">Obsah balíka</p>
+            <p className="text-xs font-black uppercase tracking-wider text-brand">Objednávka</p>
             <h2 className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">
-              Kompletná obhliadka bez zbytočného hádania
+              Objednávka kontroly auta
             </h2>
             <p className="mt-4 text-slate-600 font-medium leading-relaxed">
-              Jedno zle kúpené auto ťa môže vyjsť na tisíce eur na nečakaných opravách. Profesionálna obhliadka od nás stojí len zlomok tejto sumy.
+              Vyplň krátky formulár. Technik ťa bude následne kontaktovať pre potvrdenie miesta, času a detailov obhliadky.
             </p>
-          </div>
-          <div className="space-y-2.5">
-            {packageItems.map((item) => (
-              <div
-                className="flex items-start gap-3 border border-slate-100 bg-slate-50/30 p-4 rounded-xl text-sm font-bold text-slate-800"
-                key={item}
-              >
-                <div className="flex size-5 shrink-0 items-center justify-center rounded-full bg-emerald-50 text-brand mt-0.5">
-                  <ClipboardCheck aria-hidden="true" size={13} strokeWidth={2.8} />
+            <div className="mt-8 space-y-4">
+              <div className="flex items-center gap-3 font-bold text-slate-800">
+                <div className="flex size-8 shrink-0 items-center justify-center bg-emerald-50 text-brand rounded-full">
+                  <Clock size={16} />
                 </div>
-                <span className="font-extrabold text-slate-900 leading-tight">{item}</span>
+                <span className="text-sm font-extrabold text-slate-900">Rýchle dohodnutie termínu (do 24-48 hod.)</span>
               </div>
-            ))}
+              <div className="flex items-center gap-3 font-bold text-slate-800">
+                <div className="flex size-8 shrink-0 items-center justify-center bg-emerald-50 text-brand rounded-full">
+                  <MapPin size={16} />
+                </div>
+                <span className="text-sm font-extrabold text-slate-900">Kontroly po celom Slovensku bez doplatkov</span>
+              </div>
+            </div>
           </div>
+
+          <form onSubmit={handleSubmit} className="grid gap-4 border border-slate-100 bg-white p-6 sm:p-8 rounded-2xl shadow-xl">
+            {errorMessage && (
+              <div className="bg-red-50 text-red-800 text-xs font-bold p-3 rounded-lg border border-red-100 mb-2">
+                {errorMessage}
+              </div>
+            )}
+            {paymentStatus === "cancelled" && (
+              <div className="bg-amber-50 text-amber-900 text-xs font-bold p-3 rounded-lg border border-amber-100 mb-2 flex items-center justify-between">
+                <span>Platba bola zrušená. Vaša objednávka nebola dokončená.</span>
+                <button
+                  type="button"
+                  onClick={clearPaymentStatus}
+                  className="text-amber-700 hover:text-amber-950 font-black cursor-pointer ml-2"
+                >
+                  <X size={16} />
+                </button>
+              </div>
+            )}
+            <label className="grid gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+              Meno a priezvisko *
+              <input
+                required
+                value={formData.name}
+                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                className="focus-ring min-h-12 border border-slate-200 rounded-lg px-4 text-sm font-bold normal-case focus:border-brand"
+                placeholder="Tvoje meno"
+                type="text"
+              />
+            </label>
+            <div className="grid gap-4 sm:grid-cols-2">
+              <label className="grid gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+                Telefónne číslo *
+                <input
+                  required
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="focus-ring min-h-12 border border-slate-200 rounded-lg px-4 text-sm font-bold normal-case focus:border-brand"
+                  placeholder="+421 XXX XXX XXX"
+                  type="tel"
+                />
+              </label>
+              <label className="grid gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+                E-mailová adresa *
+                <input
+                  required
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="focus-ring min-h-12 border border-slate-200 rounded-lg px-4 text-sm font-bold normal-case focus:border-brand"
+                  placeholder="info@email.sk"
+                  type="email"
+                />
+              </label>
+            </div>
+            <label className="grid gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+              Odkaz na inzerát vozidla
+              <input
+                value={formData.adUrl}
+                onChange={(e) => setFormData({ ...formData, adUrl: e.target.value })}
+                className="focus-ring min-h-12 border border-slate-200 rounded-lg px-4 text-sm font-bold normal-case focus:border-brand"
+                placeholder="https://www.autobazar.eu/..."
+                type="url"
+              />
+            </label>
+            <label className="grid gap-2 text-xs font-black uppercase tracking-wider text-slate-700">
+              Poznámka pre technika
+              <textarea
+                value={formData.note}
+                onChange={(e) => setFormData({ ...formData, note: e.target.value })}
+                className="focus-ring min-h-28 resize-none border border-slate-200 rounded-lg px-4 py-3 text-sm font-bold normal-case focus:border-brand"
+                placeholder="Doplňujúce otázky, preferovaný termín alebo miesto..."
+              />
+            </label>
+            <button
+              disabled={isSubmitting}
+              className="focus-ring mt-2 inline-flex min-h-12 items-center justify-center gap-2 border border-[#189653] bg-[#189653] px-6 py-3 text-xs font-black uppercase tracking-wider text-white transition hover:bg-[#127744] hover:shadow-lg hover:shadow-brand/20 active:scale-[0.98] cursor-pointer rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              type="submit"
+            >
+              {isSubmitting ? "Presmerovanie na platbu..." : "Prejsť k platbe 159 €"}
+              <ArrowRight aria-hidden="true" size={15} strokeWidth={2.7} />
+            </button>
+          </form>
         </motion.div>
       </section>
 
       {/* Accordion FAQ Section */}
-      <section id="faq" className="py-20 bg-slate-50">
+      <section id="faq" className="py-20 bg-slate-50 scroll-mt-24">
         <motion.div
           initial={{ opacity: 0, y: 30 }}
           whileInView={{ opacity: 1, y: 0 }}
@@ -747,7 +1023,7 @@ export default function Home() {
               Často kladené otázky
             </h2>
           </div>
-          
+
           <div className="mt-12 space-y-3">
             {faqs.map((faq, index) => (
               <div
@@ -784,101 +1060,52 @@ export default function Home() {
               </div>
             ))}
           </div>
+
+          <div className="mt-10 text-center text-sm text-slate-600 font-medium">
+            Nenašiel si odpoveď na svoju otázku?{" "}
+            <Link href="/kontakt" className="text-brand font-extrabold hover:underline">
+              Napíš nám
+            </Link>
+          </div>
         </motion.div>
       </section>
 
-      {/* Why Us (Prečo si vybrať nás) */}
-      <section className="py-20 bg-white border-b border-slate-100">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-          className="container-shell grid gap-12 lg:grid-cols-[1fr_1fr]"
-        >
-          <div>
-            <p className="text-xs font-black uppercase tracking-wider text-brand">Prečo CONTROLLO</p>
-            <h2 className="mt-2 text-3xl font-extrabold text-slate-900 sm:text-4xl">
-              Prečo zveriť kontrolu nám
-            </h2>
-            <div className="mt-8 space-y-3">
-              {reasons.map((reason) => (
-                <div
-                  className="flex items-center gap-3 border border-slate-100 p-4 rounded-xl font-bold text-slate-800"
-                  key={reason}
-                >
-                  <div className="flex size-7 shrink-0 items-center justify-center bg-emerald-50 text-brand rounded-full">
-                    <BadgeCheck aria-hidden="true" size={16} />
-                  </div>
-                  <span className="font-extrabold text-slate-950 text-sm">{reason}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-          
-          <div className="border border-slate-100 bg-slate-50/50 p-8 rounded-2xl flex flex-col justify-between">
-            <div>
-              <h3 className="text-xl font-extrabold text-slate-950">
-                Doplnkové služby na jednom mieste
+      {/* Payment Success Overlay Modal */}
+      <AnimatePresence>
+        {(paymentStatus === "success" || paymentStatus === "mock_success") && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs">
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              className="relative w-full max-w-md overflow-hidden border border-slate-100 bg-white p-8 shadow-2xl rounded-2xl text-center"
+            >
+              <div className="mx-auto flex size-14 items-center justify-center rounded-full bg-emerald-100 text-brand">
+                <Check size={28} strokeWidth={3} />
+              </div>
+              <h3 className="font-heading text-2xl font-extrabold text-slate-900 mt-5">
+                Objednávka zaplatená!
               </h3>
-              <p className="mt-3 text-sm text-slate-500 font-medium leading-relaxed">
-                Okrem dôkladného preverenia vozidla ti radi pomôžeme s poistením či výhodným financovaním bez zbytočného behania po úradoch.
+              <p className="mt-3 text-sm text-slate-600 font-medium leading-relaxed">
+                Ďakujeme za vašu objednávku{customerName ? `, ${customerName}` : ""}. Platba prebehla úspešne a technické detaily sme prijali. Náš technik vás bude čoskoro kontaktovať pre dohodnutie obhliadky.
               </p>
-              <div className="mt-6 space-y-3">
-                {[
-                  "Návrh najvýhodnejšieho PZP alebo havarijného poistenia",
-                  "Možnosť financovania cez úver alebo leasing",
-                  "Rýchle a jednoduché spracovanie na kľúč",
-                ].map((item) => (
-                  <div className="flex items-center gap-3 font-semibold text-slate-800 text-xs sm:text-sm" key={item}>
-                    <Check aria-hidden="true" className="text-brand shrink-0" size={16} strokeWidth={3} />
-                    <span>{item}</span>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
-        </motion.div>
-      </section>
 
-      {/* CTA: opens the service detail page */}
-      <section id="objednavka" className="py-20 bg-slate-50">
-        <motion.div
-          initial={{ opacity: 0, y: 30 }}
-          whileInView={{ opacity: 1, y: 0 }}
-          viewport={{ once: true, margin: "-100px" }}
-          transition={{ duration: 0.6 }}
-          className="container-shell"
-        >
-          <div className="relative overflow-hidden rounded-3xl bg-[#189653] px-8 py-14 md:px-16 md:py-20 text-center shadow-xl shadow-brand/20">
-            <div className="absolute -right-24 -top-24 size-72 rounded-full bg-white/10" />
-            <div className="absolute -left-20 -bottom-24 size-72 rounded-full bg-black/5" />
-            <div className="relative mx-auto max-w-2xl">
-              <p className="text-xs font-black uppercase tracking-wider text-emerald-100">
-                Objednávka kontroly
-              </p>
-              <h2 className="mt-3 text-3xl font-extrabold !text-white sm:text-4xl">
-                Priprav sa na istú kúpu auta
-              </h2>
-              <p className="mt-4 text-emerald-50 font-medium leading-relaxed">
-                Pozri si detail 150-bodovej kontroly a objednaj preverenie vozidla. Technik ťa následne kontaktuje pre potvrdenie termínu a miesta obhliadky.
-              </p>
-              <div className="mt-8 flex justify-center">
-                <Link
-                  href="/kontrola-vozidla#objednavka"
-                  className="focus-ring inline-flex min-h-14 items-center justify-center gap-2 bg-white px-8 py-4 text-sm font-black uppercase tracking-wider text-[#189653] transition hover:bg-emerald-50 hover:shadow-lg active:scale-[0.98] rounded-xl"
-                >
-                  Objednať kontrolu za 159 €
-                  <ArrowRight aria-hidden="true" size={18} strokeWidth={2.7} />
-                </Link>
-              </div>
-              <p className="mt-5 text-xs font-bold text-emerald-100">
-                Kontroly po celom Slovensku · Termín do 24-48 hodín
-              </p>
-            </div>
+              {paymentStatus === "mock_success" && (
+                <div className="mt-4 bg-blue-50 border border-blue-100 text-blue-800 text-xs font-semibold p-3.5 rounded-lg text-left">
+                  <strong>Stripe Demo Mode:</strong> Táto objednávka bola spracovaná v simulovanom režime, keďže chýba Stripe konfigurácia. V produkcii budete presmerovaní na skutočnú platobnú bránu Stripe.
+                </div>
+              )}
+
+              <button
+                onClick={clearPaymentStatus}
+                className="focus-ring mt-6 w-full inline-flex min-h-12 items-center justify-center bg-slate-900 text-white font-extrabold text-xs uppercase tracking-wider hover:bg-slate-800 transition cursor-pointer rounded-lg"
+              >
+                Zavrieť
+              </button>
+            </motion.div>
           </div>
-        </motion.div>
-      </section>
+        )}
+      </AnimatePresence>
 
     </main>
   );

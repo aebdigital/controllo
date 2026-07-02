@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { Outfit, Plus_Jakarta_Sans } from "next/font/google";
 import "./globals.css";
 import CookieBanner from "../components/CookieBanner";
+import FloatingCta from "../components/FloatingCta";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -36,6 +37,7 @@ export default function RootLayout({
           {children}
         </main>
         <Footer />
+        <FloatingCta />
         <CookieBanner />
       </body>
     </html>
